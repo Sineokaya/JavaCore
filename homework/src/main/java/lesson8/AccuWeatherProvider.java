@@ -1,16 +1,20 @@
-package lesson7;
-import com.fasterxml.jackson.core.io.JsonEOFException;
+package lesson8;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+
 public class AccuWeatherProvider implements WeatherProvider {
+
+
     public static final String BASE_HOST = "dataservice.accuweather.com";
     public static final String FORECASTS = "forecasts";
     public static final String API_VERSION = "v1";
@@ -42,28 +46,28 @@ public class AccuWeatherProvider implements WeatherProvider {
                     .build();
 
             Request request = new Request.Builder()
-                    .addHeader("accept", "application/json")
-                    .url(url)
+               .addHeader("accept", "application/json")
+                   .url(url)
                     .build();
             String jsonResponse = client.newCall(request).execute().body().string();
             //выводим в файл результат прогноза
             File file = new File("./forecast5.json");
             if (!file.exists()) {
-                file.createNewFile();
+               file.createNewFile();
             }
             try (PrintWriter out = new PrintWriter(file)) {
-                out.print(jsonResponse);
+              out.print(jsonResponse);
                 System.out.println("Погода за 5 дней записана в файл " + file.getName());
             }
         }
+
         //десериализация и печать полученных результатов в консоль
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         WeatherResponse weatherResponse = objectMapper.readValue(new File("forecast5.json"), WeatherResponse.class);
-        for (int i = 0; i < weatherResponse.dailyForecasts.size(); i++) {
-            System.out.println("В городе " + city + " на дату " + weatherResponse.dailyForecasts.get(i).date + " ожидается " + weatherResponse.dailyForecasts.get(i).day.value + ", температура: " + weatherResponse.dailyForecasts.get(i).temperature.minimum.value +  weatherResponse.dailyForecasts.get(i).temperature.minimum.unit);
+        DatabaseRepositorySQLite.writeData(weatherResponse,city);
+        DatabaseRepositorySQLite.printData(city);
         }
-    }
 
     //узнаем id города
     public static String setGlobalCity(String mycity) throws IOException {
@@ -79,19 +83,19 @@ public class AccuWeatherProvider implements WeatherProvider {
                 .build();
 
         Request request = new Request.Builder()
-                .addHeader("accept", "application/json")
-                .url(url)
-                .build();
+        .addHeader("accept", "application/json")
+              .url(url)
+              .build();
         String jsonResponse = client.newCall(request).execute().body().string();
 
-        File file = new File("./top150.json");
+       File file = new File("./top150.json");
         if (!file.exists()) {
-            file.createNewFile();
-        }
-        try (PrintWriter out = new PrintWriter(file)) {
-            out.print(jsonResponse);
+         file.createNewFile();
+       }
+       try (PrintWriter out = new PrintWriter(file)) {
+           out.print(jsonResponse);
             //из этого файла найдем id города
-            System.out.println("Информация по 150 городам записана в файл " + file.getName());
+         System.out.println("Информация по 150 городам записана в файл " + file.getName());
         }
         //ищем в файле код города
         ObjectMapper objectMapper = new ObjectMapper();
